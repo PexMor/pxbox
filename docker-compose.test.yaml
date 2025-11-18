@@ -1,0 +1,49 @@
+# Test-specific docker-compose for running tests
+services:
+  postgres_test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pxbox_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 5
+
+  redis_test:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 5
+
+  pxbox-api_test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres_test:
+        condition: service_healthy
+      redis_test:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres_test:5432/pxbox_test?sslmode=disable
+      REDIS_ADDR: redis_test:6379
+      ADDR: :8080
+    ports:
+      - "8082:8080"
+    command: >
+      sh -c "
+        /app/pxbox-api migrate &&
+        /app/pxbox-api serve
+      "
+

@@ -1,0 +1,16 @@
+.git
+.gitignore
+*.md
+.vscode
+.idea
+*.swp
+*.swo
+*~
+bin/
+test/
+*.test
+*.out
+storage/
+.env
+.env.local
+

@@ -1,0 +1,51 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# Dependencies
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+
+# Database
+*.db
+*.sqlite
+
+# Logs
+*.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.yarn/
+frontend/.pnp.*
+
+# Build artifacts
+bin/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# tmp
+tmp/
+.cursor/
+__pycache__
+**/flow_state.json

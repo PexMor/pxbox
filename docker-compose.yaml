@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pxbox
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  pxbox-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/pxbox?sslmode=disable
+      REDIS_ADDR: redis:6379
+      ADDR: :8080
+      STORAGE_BASE_DIR: /app/storage
+      STORAGE_BASE_URL: http://localhost:8082
+    ports:
+      - "8082:8080"  # Changed external port to 8082 to avoid conflicts
+    volumes:
+      - ./storage:/app/storage
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        sleep 2 &&
+        /app/pxbox-api migrate &&
+        /app/pxbox-api serve
+      "
+
+volumes:
+  postgres_data:
+
